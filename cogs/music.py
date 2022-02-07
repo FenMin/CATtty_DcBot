@@ -21,6 +21,7 @@ class music(commands.Cog):
             await channel.connect()
         except:
             pass
+
     @commands.command()
     async def leave(self,ctx):
         try:
@@ -33,6 +34,7 @@ class music(commands.Cog):
                 await ctx.send("u can't do it")
         except:
             pass
+        
     @commands.command(brief="音樂播放")
     async def play(self, ctx, url):
         pass
