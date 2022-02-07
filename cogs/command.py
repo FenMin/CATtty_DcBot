@@ -23,25 +23,21 @@ class command(commands.Cog):
         await ctx.channel.purge(limit=1)
    
     @commands.command(brief="請輸入創頻數量")
-    async def voice(self, ctx, num):        
-        await ctx.send(f'創建 ***{num}*** 個語音頻道')  
+    async def voice_create(self, ctx, num):         
         if num.isdigit():
-            int(num)
-            for i in range(num):
-                ctx.send(f'i')
-                await ctx.guild.create_voice_channel("第{i}個")
+            await ctx.send(f'創建 ***{num}*** 個語音頻道') 
+            for i in range(int(num)):
+                await ctx.guild.create_voice_channel(f"第{i+1}個")
         else:
             await ctx.send("請輸入數字")
-            
-                
-
-    @commands.command(brief = "瘋狂刪頻")
-    async def delete(self, ctx):     
-        guild = ctx.guild
-        channel = guild.channels
-        await self.bot.fetch_channel(channel)
-        
-    
+       
+    @commands.command(brief="刪除開頭為 \"第\" 的頻道")
+    async def delete_channel(self, ctx):
+        channel = ctx.guild.voice_channels
+        for i in channel:  
+            if i.name[0] == "第" and i.name[-1] == "個":  
+                await i.delete()
+                await ctx.send(f'以刪除 ***{i.name}*** 頻道')
 
         
 
