@@ -11,7 +11,7 @@ path = data['record_xlsx']
 wb = load_workbook(path)
 ws = wb.active
 count = 0
-
+value = 0
 def check_A_list_len():
     x=1
     while ws[f'A{x}'].value != None:
@@ -29,22 +29,22 @@ def add_count(id):
         if ws[f'A1'].value == None:
             ws[f'A{i}'].value = id
             ws[f'B{i}'].value = 1
-            count = ws[f'B1'].value
+            value = ws[f'B1'].value
             break
         
         elif i == check_A_list_len() and ws['A1'].value != None and id != ws[f'A{i}'].value:
             ws[f'A{i+1}'].value = id
             ws[f'B{i+1}'].value = 1 
-            count = ws[f'B{i+1}'].value
+            value = ws[f'B{i+1}'].value
             break
 
         elif id == ws[f'A{i}'].value:
             ws[f'B{i}'].value+=1 
-            count = ws[f'B{i}'].value
+            value = ws[f'B{i}'].value
             break
 
     wb.save(path)
-    return i
+    return value
 #---------------------------------------------------------cog start
 
 class record(commands.Cog):
@@ -55,11 +55,11 @@ class record(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         channel = msg.channel
-        if msg.content.startswith('testz'):
+        keyw = "2202"
+        if msg.content == keyw:
             id = msg.author.id
             count = add_count(int(id/100000000))
-            count = ws[f'B{count}'].value
-            await channel.send(f'{msg.author}你已經testz了 ***{count}*** 次')
+            await channel.send(f'*{msg.author.name}* 你已經{keyw}了 ***{count}*** 次')
             
 
     

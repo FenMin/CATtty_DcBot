@@ -53,7 +53,8 @@ class command(commands.Cog):
         #guild = self.bot.guilds
         #for i in guild:
         #    await ctx.send(f'{i.owner} , {type(i.owner)}')
-        await ctx.send(ctx.author.voice)
+        await ctx.send(ctx.author.name)
+    
 
 def setup(bot):
     bot.add_cog(command(bot))
