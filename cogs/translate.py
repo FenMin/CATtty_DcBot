@@ -7,7 +7,7 @@ from googletrans.client import Translator
 
 translator = Translator()
 
-class record(commands.Cog):
+class translate(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
@@ -43,5 +43,7 @@ class record(commands.Cog):
 
 
 
+
+
 def setup(bot):
-    bot.add_cog(record(bot))
+    bot.add_cog(translate(bot))

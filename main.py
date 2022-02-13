@@ -8,7 +8,7 @@ intents = discord.Intents.all()
 
 bot = commands.Bot(command_prefix='#',intents=intents)
 
-with open('data.json' , 'r') as f:
+with open('./data/data.json' , 'r') as f:
     data = json.load(f)
 
 #--
@@ -26,9 +26,14 @@ async def reload(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
 
 
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
+def addcog_path(path , pathname):
+    for filename in os.listdir(path):
+        if filename.endswith('.py'):
+            bot.load_extension(f'{pathname}.{filename[:-3]}')
+            
+
+addcog_path('./cogs' , 'cogs')
+addcog_path('./cogs/listener' , 'cogs.listener')
 
 
 
@@ -37,4 +42,4 @@ async def on_ready():
     print('ready')
 
 
-bot.run(data['token'])
+bot.run(data["token"])

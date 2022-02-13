@@ -7,7 +7,7 @@ import shutil
 import os
 import json
 
-with open('data.json' , 'r') as f:
+with open('data/data.json' , 'r') as f:
     data = json.load(f)
 
 

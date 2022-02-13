@@ -2,6 +2,10 @@ import discord
 from discord.ext import commands
 import time
 import random
+
+
+
+
 class event(commands.Cog):
 
     def __init__(self, bot):
@@ -11,7 +15,6 @@ class event(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.content.startswith('loop'):
-           y=1
            x = random.randint(1 , 10)
            channel = message.channel
            await channel.send(f'共刷 *{x}* 則')
@@ -26,12 +29,10 @@ class event(commands.Cog):
                    break
     
     @commands.Cog.listener()
-    async def on_voice_state_update(self, channel_id, guild_id, member): 
-        pass
-        #print(guild_id)
-        #print(channel_id)
-        #channel = self.bot.get_channel(835720347809742848)
-        #await channel.send(f'歡迎進入')
+    async def on_message(self, msg):
+        if msg.content.startswith('87'):
+            pass
+    
     
                 
         

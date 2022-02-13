@@ -1,4 +1,5 @@
 /.vscode
-data.json
+/data
 ghostdriver.log
 /cogs/__pycache__
+/cogs/listener/__pycache__
