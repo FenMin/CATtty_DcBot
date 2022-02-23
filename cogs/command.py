@@ -35,7 +35,7 @@ class command(commands.Cog):
     async def delete_channel(self, ctx):
         channel = ctx.guild.channels
         for i in channel:  
-            if i.name[0] == "第" and (i.name[-4:] == "語音頻道" or i.name[-4:] == "文字頻道"):  
+            if i.name[0] == "第" and (i.name[-4:] == "語音頻道" or i.name[-4:] == "文字頻道"):
                 await i.delete()
                 await ctx.send(f'以刪除 ***{i.name}*** 之 ***{i.type}*** 頻道')
 

@@ -10,8 +10,8 @@ path = data['record_xlsx']
 
 wb = load_workbook(path)
 ws = wb.active
-count = 0
-value = 0
+
+
 def check_A_list_len():
     x=1
     while ws[f'A{x}'].value != None:
@@ -24,7 +24,9 @@ def check_A_list_len():
     else:
         return int(x-1)  #len = minute "start num"
 
+
 def add_count(id):
+    value = 0
     for i in range(1 , check_A_list_len()+1):  #list of space we use
         if ws[f'A1'].value == None:
             ws[f'A{i}'].value = id
@@ -45,8 +47,8 @@ def add_count(id):
 
     wb.save(path)
     return value
-#---------------------------------------------------------cog start
 
+#---------------------------------------------------------cog start
 class record(commands.Cog):
 
     def __init__(self, bot):
@@ -54,6 +56,7 @@ class record(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        count = 0
         channel = msg.channel
         keyw = "2202"
         if msg.content == keyw:
