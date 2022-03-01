@@ -34,7 +34,7 @@ def addcog_path(path , pathname):
 
 addcog_path('./cogs' , 'cogs')
 addcog_path('./cogs/listener' , 'cogs.listener')
-
+addcog_path('./cogs/web_crawler' , "cogs.web_crawler")
 
 
 @bot.event

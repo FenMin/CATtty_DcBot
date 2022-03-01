@@ -3,3 +3,4 @@
 ghostdriver.log
 /cogs/__pycache__
 /cogs/listener/__pycache__
+/cogs/web_crawler/__pycache__
