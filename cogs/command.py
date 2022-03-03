@@ -54,19 +54,8 @@ class command(commands.Cog):
     @commands.is_owner()
     async def test(self , ctx):
         person = ctx.author.id
-        if person == "397291587308093450":
-            view = View()
-            button = Button(label="hi" , style=discord.ButtonStyle.green)
-        
-            async def button_callback(i):
-                await ctx.send(i.user.name)
-
-            button.callback = button_callback
-            view.add_item(button)
-
-            await ctx.send("Hi",view=view)
-        else:
-            pass
+        if person == 397291587308093450:
+            await ctx.reply("hey")
 
 
 

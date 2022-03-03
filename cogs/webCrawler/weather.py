@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands
 import requests
 import json
-from ..buttonCmd import weatherButton , weatherSelect
-
+from ..buttonCmd import weatherButton, weatherSelect
+from discord.ui import Button , View , Select
 
 
 with open('data/data.json' , 'r') as f:
@@ -36,22 +36,34 @@ def get_data_with_time(city , time_index:int):
 
     else:
         print("false: " , response.status_code)
+
+        
+       
 class weather(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def weather(self, ctx, city_ori:str):
+    async def weather(self, ctx):
+        view_select = weatherSelect(ctx) 
+        view_button = weatherButton(ctx)    
+        await ctx.send("請選擇城市..." , view=view_select)
 
-        if isinstance(city_ori , str):
-
-            city = city_ori.replace("台" , "臺")
+        res_select = await view_select.wait()
+        
+        
+        if res_select:
+            await ctx.send("太久了喔")
+        else:
+            await ctx.send(f"你選擇的是{view_select.value}")
+            city = view_select.value.replace("台" , "臺")   
+    
             
-            try: 
+            try:
                 weather_list = get_data_with_time(city , 0)
-
-                embed=discord.Embed(title="天氣", description=city_ori, color=0x00abf5)
+        
+                embed=discord.Embed(title="天氣", description=view_select.value, color=0x00abf5)
                 embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar)
                 embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
                 embed.add_field(name="時間 ", value=weather_list[0], inline=False)
@@ -61,20 +73,15 @@ class weather(commands.Cog):
                 embed.add_field(name="本日氣候狀況", value=weather_list[4], inline=True)
                 embed.add_field(name="本日溫度狀況", value=weather_list[5], inline=True)
                 embed.set_footer(text="資料來源：中央氣象局")
-                await ctx.send(embed=embed , view=weatherButton())
+
+                msg = await ctx.send(embed = embed , view=view_button)
+
+
+
+
+                
             except:
-                await ctx.send("> **錯誤**  *無此城市..*")
-
-        else:
-            await ctx.send("請輸入城市... E.g.台北市")
-
-
-
-
-
-
-
-
+                await ctx.send("> **錯誤...**")
 
 
 
