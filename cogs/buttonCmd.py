@@ -3,7 +3,7 @@ import requests
 import json
 from discord.ext import commands
 from discord.ui import Button, View, Select
-
+import random
 
 #from discord_components import Select,SelectOption
 
@@ -48,14 +48,7 @@ def get_data_with_time(city , time_index:int):
     else:
         print("false: " , response.status_code)
 
-def generator(weather_list):
-    embed = discord.Embed()
-    embed.add_field(name="時間 ", value=weather_list[0], inline=False)
-    embed.add_field(name="當日最高溫", value=weather_list[1], inline=True)
-    embed.add_field(name="當日最低溫", value=weather_list[2], inline=True)
-    embed.add_field(name="降雨機率", value=weather_list[3], inline=False)
-    embed.add_field(name="本日氣候狀況", value=weather_list[4], inline=True)
-    embed.add_field(name="本日溫度狀況", value=weather_list[5], inline=True)
+
 
 time_list = get_data_with_time("臺北市" , 999)
 
@@ -72,7 +65,8 @@ class weatherButton(View):
         super().__init__(timeout= 60)
         self.value = 0
         self.ctx = ctx
-
+        self.ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+        
     @discord.ui.button(label = time_list[0] , style=discord.ButtonStyle.red , custom_id="one" ,disabled=True)
     async def first_button(self, button , interaction): 
         
@@ -94,7 +88,7 @@ class weatherButton(View):
         
         weather_list = get_data_with_time(a , index)
 
-        embed=discord.Embed(title="天氣", description=a, color=0x00abf5)
+        embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
         embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
         embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
@@ -138,7 +132,7 @@ class weatherButton(View):
 
         weather_list = get_data_with_time(a , index)
 
-        embed=discord.Embed(title="天氣", description=a, color=0x00abf5)
+        embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
         embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
         embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
@@ -180,7 +174,7 @@ class weatherButton(View):
        
         weather_list = get_data_with_time(a , index)
 
-        embed=discord.Embed(title="天氣", description=a, color=0x00abf5)
+        embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
         embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
         embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
@@ -233,20 +227,20 @@ class weatherSelect(View):
              discord.SelectOption(label="台北市" , value="台北市"),
              discord.SelectOption(label="新北市" , value="新北市"),
              discord.SelectOption(label="桃園市" , value="桃園市"),
-             discord.SelectOption(label="宜蘭市" , value="宜蘭市"),
+             discord.SelectOption(label="宜蘭縣" , value="宜蘭縣"),
              discord.SelectOption(label="新竹市" , value="新竹市"),
              discord.SelectOption(label="新竹縣" , value="新竹縣"),
-             discord.SelectOption(label="苗栗市" , value="苗栗市"),
+             discord.SelectOption(label="苗栗縣" , value="苗栗縣"),
              discord.SelectOption(label="台中市" , value="台中市"),
-             discord.SelectOption(label="彰化市" , value="彰化市"),
+             discord.SelectOption(label="彰化縣" , value="彰化縣"),
              discord.SelectOption(label="南投市" , value="南投市"),
              discord.SelectOption(label="雲林市" , value="雲林市"),
              discord.SelectOption(label="嘉義市" , value="嘉義市"),
-             discord.SelectOption(label="花蓮市" , value="花蓮市"),
-             discord.SelectOption(label="台東市" , value="台東市"),
+             discord.SelectOption(label="花蓮縣" , value="花蓮縣"),
+             discord.SelectOption(label="台東縣" , value="台東縣"),
              discord.SelectOption(label="台南市" , value="台南市"),
              discord.SelectOption(label="高雄市" , value="高雄市"),
-             discord.SelectOption(label="屏東市" , value="屏東市"),
+             discord.SelectOption(label="屏東縣" , value="屏東縣"),
              ]
 
     @discord.ui.select(placeholder="Select something!", options=options)
@@ -260,7 +254,7 @@ class weatherSelect(View):
         self.stop()
 
     async def on_timeout(self):
-        await self.ctx.reply("timeout")
+        await self.ctx.reply("timeout" , ephemeral=True)
         return 
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

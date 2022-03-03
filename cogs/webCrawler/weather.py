@@ -4,7 +4,7 @@ import requests
 import json
 from ..buttonCmd import weatherButton, weatherSelect
 from discord.ui import Button , View , Select
-
+import random
 
 with open('data/data.json' , 'r') as f:
     api_data = json.load(f)  
@@ -60,28 +60,28 @@ class weather(commands.Cog):
             city = view_select.value.replace("台" , "臺")   
     
             
-            try:
-                weather_list = get_data_with_time(city , 0)
-        
-                embed=discord.Embed(title="天氣", description=view_select.value, color=0x00abf5)
-                embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar)
-                embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
-                embed.add_field(name="時間 ", value=weather_list[0], inline=False)
-                embed.add_field(name="當日最高溫", value=weather_list[1], inline=True)
-                embed.add_field(name="當日最低溫", value=weather_list[2], inline=True)
-                embed.add_field(name="降雨機率", value=weather_list[3], inline=False)
-                embed.add_field(name="本日氣候狀況", value=weather_list[4], inline=True)
-                embed.add_field(name="本日溫度狀況", value=weather_list[5], inline=True)
-                embed.set_footer(text="資料來源：中央氣象局")
+            #try:
+            weather_list = get_data_with_time(city , 0)
+            ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+            embed=discord.Embed(title="天氣", description=view_select.value, color=ram_color)
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar)
+            embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
+            embed.add_field(name="時間 ", value=weather_list[0], inline=False)
+            embed.add_field(name="當日最高溫", value=weather_list[1], inline=True)
+            embed.add_field(name="當日最低溫", value=weather_list[2], inline=True)
+            embed.add_field(name="降雨機率", value=weather_list[3], inline=False)
+            embed.add_field(name="本日氣候狀況", value=weather_list[4], inline=True)
+            embed.add_field(name="本日溫度狀況", value=weather_list[5], inline=True)
+            embed.set_footer(text="資料來源：中央氣象局")
 
-                msg = await ctx.send(embed = embed , view=view_button)
+            msg = await ctx.send(embed = embed , view=view_button)
 
 
 
 
                 
-            except:
-                await ctx.send("> **錯誤...**")
+            #except:
+            #    await ctx.send("> **錯誤...**")
 
 
 
