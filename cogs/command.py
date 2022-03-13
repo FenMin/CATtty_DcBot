@@ -1,11 +1,54 @@
+from async_timeout import timeout
 import discord
 from discord.ext import commands
 from discord.ui import Button , View
 import time
-
-
+from datetime import datetime
+import random
 from discord.ext.commands.core import guild_only
 
+class CountdownButton(Button):
+    def __init__(self):
+        super().__init__(label="刷新" , style=discord.ButtonStyle.primary, emoji="🔄")
+    
+    async def callback(self, interaction):
+        present = datetime.now()
+        future = datetime(2022, 4, 30, 0, 0, 0)
+        diff = future - present
+
+        count_hours, rem = divmod(diff.seconds, 3600)
+        count_minutes, count_seconds = divmod(rem, 60)
+
+        ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+        embed = discord.Embed(title="統測倒數" , color=ram_color)
+        embed.add_field(name="--------------" , value=f"{diff.days}天 {count_hours}小時 {count_minutes}分 {count_seconds}秒")
+
+        await interaction.message.edit(embed = embed)
+
+class musicbtn(View):
+    def __init__(self):
+        super().__init__(timeout=30)
+        self.status = 0
+
+    @discord.ui.button(label = "暫停" , style = discord.ButtonStyle.danger , emoji="⏸️")
+    async def call(self , button, interaction):    
+        if not self.status:  #status == pause
+            button.label = "繼續"
+            button.style = discord.ButtonStyle.green
+            button.emoji = "▶️"
+            self.status = 1
+            await mes.edit("1")
+            
+        else:
+            button.label = "暫停"
+            button.style = discord.ButtonStyle.danger
+            button.emoji = "⏸️"
+            self.status = 0
+            await mes.edit("2")
+        await interaction.response.edit_message(view = self)
+        
+    def get_status(self):
+        return self.status
 
 class command(commands.Cog):
     
@@ -18,7 +61,7 @@ class command(commands.Cog):
         await ctx.send(f'**{round(self.bot.latency*1000)}**ms')
     
     @commands.command()
-    async def clean(self, ctx, num:int):
+    async def clear(self, ctx, num:int):
         await ctx.channel.purge(limit=num+1)
         await ctx.channel.send(f'已刪除 ***{num}*** 則訊息')
         time.sleep(1)
@@ -55,8 +98,34 @@ class command(commands.Cog):
     async def test(self , ctx):
         person = ctx.author.id
         if person == 397291587308093450:
-            await ctx.reply("hey")
+            view = musicbtn()
+            status = view.status
+            global mes
+            mes = await ctx.reply(f'status = {status}' , view = view)
 
+    @commands.command(name="countdown")
+    async def countdown(self,ctx):
+        present = datetime.now()
+        future = datetime(2022, 4, 30, 0, 0, 0)
+        diff = future - present
+
+        count_hours, rem = divmod(diff.seconds, 3600)
+        count_minutes, count_seconds = divmod(rem, 60)
+        btn = CountdownButton()
+        view = View(timeout=None)
+        view.add_item(btn)
+        
+        ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+
+        embed = discord.Embed(title="統測倒數" , color=ram_color)
+        embed.add_field(name="--------------" , value=f"{diff.days}天 {count_hours}小時 {count_minutes}分 {count_seconds}秒")
+
+        bot_msg = await ctx.send( embed=embed, view=view)
+        
+        
+
+
+        
 
 
 def setup(bot):

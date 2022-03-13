@@ -1,6 +1,7 @@
 from re import T
 import discord
 import time
+import random
 from discord.ext import commands
 from googletrans.client import Translator
 
@@ -31,8 +32,10 @@ class translate(commands.Cog):
                    tran_origin = trans_en.origin
                    tran_text = trans_en.text
        
-        embed=discord.Embed(title=" ",color=0x00e1ff)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+
+        ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+        embed=discord.Embed(title=" ",color=ram_color)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar)
         embed.set_thumbnail(url="https://cdn0.iconfinder.com/data/icons/tuts/256/google_translate.png")
         embed.add_field(name="__原句__", value=(f'**{tran_origin}**'), inline=True)
         embed.add_field(name="__翻譯__", value=(f'**{tran_text}**'), inline=False)

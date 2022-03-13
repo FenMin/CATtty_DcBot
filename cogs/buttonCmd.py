@@ -7,14 +7,14 @@ import random
 
 #from discord_components import Select,SelectOption
 
-with open('data/data.json' , 'r') as f:
-    api_data = json.load(f)  
+with open('./data/data.json' , 'r') as f:
+    jdata = json.load(f)
 
 def get_data_with_time(city , time_index:int):
     city = city.replace("台" , "臺")   
     url = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001"
     params = {
-                "Authorization": api_data["weather_api"],
+                "Authorization": jdata["weather_api"],
                 "locationName": city
             }
     response = requests.get(url, params=params)
@@ -59,6 +59,20 @@ def button_detect(children , id):
     button = [x for x in children if x.custom_id == id][0] #itz a list
     return button
 
+def weathersign(status):
+    if status == "晴天":
+        pic = jdata["sun"]
+
+    elif status == "多雲":
+        pic = jdata['cloud']
+
+    elif status == "晴時多雲" or "多雲時晴":
+        pic = jdata["cloudsun"]
+    
+    else:
+        pic = jdata["rainy"]
+
+    return pic
 
 class weatherButton(View):
     def __init__(self,ctx):
@@ -87,11 +101,12 @@ class weatherButton(View):
         
         
         weather_list = get_data_with_time(a , index)
+        
+        pic = weathersign(weather_list[4])
 
         embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
-        embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
-        embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
+        embed.set_thumbnail(url=pic)
         embed.add_field(name="時間 ", value=weather_list[0], inline=False)
         embed.add_field(name="時段最高溫", value=weather_list[1], inline=True)
         embed.add_field(name="時段最低溫", value=weather_list[2], inline=True)
@@ -132,10 +147,11 @@ class weatherButton(View):
 
         weather_list = get_data_with_time(a , index)
 
+        pic = weathersign(weather_list[4])
+
         embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
-        embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
-        embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
+        embed.set_thumbnail(url=pic)
         embed.add_field(name="時間 ", value=weather_list[0], inline=False)
         embed.add_field(name="時段最高溫", value=weather_list[1], inline=True)
         embed.add_field(name="時段最低溫", value=weather_list[2], inline=True)
@@ -174,10 +190,11 @@ class weatherButton(View):
        
         weather_list = get_data_with_time(a , index)
 
+        pic = weathersign(weather_list[4])
+
         embed=discord.Embed(title="天氣", description=a, color=self.ram_color)
-        embed.clear_fields()
         embed.set_author(name=interaction.user.name, icon_url=interaction.user.avatar)
-        embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
+        embed.set_thumbnail(url=pic)
         embed.add_field(name="時間 ", value=weather_list[0], inline=False)
         embed.add_field(name="時段最高溫", value=weather_list[1], inline=True)
         embed.add_field(name="時段最低溫", value=weather_list[2], inline=True)
@@ -233,7 +250,7 @@ class weatherSelect(View):
              discord.SelectOption(label="苗栗縣" , value="苗栗縣"),
              discord.SelectOption(label="台中市" , value="台中市"),
              discord.SelectOption(label="彰化縣" , value="彰化縣"),
-             discord.SelectOption(label="南投市" , value="南投市"),
+             discord.SelectOption(label="南投縣" , value="南投縣"),
              discord.SelectOption(label="雲林市" , value="雲林市"),
              discord.SelectOption(label="嘉義市" , value="嘉義市"),
              discord.SelectOption(label="花蓮縣" , value="花蓮縣"),

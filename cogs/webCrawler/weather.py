@@ -6,13 +6,13 @@ from ..buttonCmd import weatherButton, weatherSelect
 from discord.ui import Button , View , Select
 import random
 
-with open('data/data.json' , 'r') as f:
-    api_data = json.load(f)  
+with open('./data/data.json' , 'r') as f:
+    jdata = json.load(f)
 
 def get_data_with_time(city , time_index:int):
     url = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001"
     params = {
-                "Authorization": api_data["weather_api"],
+                "Authorization": jdata["weather_api"],
                 "locationName": city
             }
     response = requests.get(url, params=params)
@@ -63,9 +63,22 @@ class weather(commands.Cog):
             #try:
             weather_list = get_data_with_time(city , 0)
             ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+
+            if (weather_list[4]) == "晴天":
+                pic = jdata["sun"]
+
+            elif (weather_list[4]) == "多雲":
+                pic = jdata['cloud']
+                
+            elif (weather_list[4]) == "晴時多雲" or "多雲時晴":
+                pic = jdata["cloudsun"]
+
+            else:
+                pic = jdata["rainy"]
+
             embed=discord.Embed(title="天氣", description=view_select.value, color=ram_color)
             embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar)
-            embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1555/1555512.png")
+            embed.set_thumbnail(url=pic)
             embed.add_field(name="時間 ", value=weather_list[0], inline=False)
             embed.add_field(name="當日最高溫", value=weather_list[1], inline=True)
             embed.add_field(name="當日最低溫", value=weather_list[2], inline=True)

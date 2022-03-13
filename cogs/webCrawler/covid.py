@@ -57,7 +57,7 @@ class covid(commands.Cog):
         embed.add_field(name="死亡病例", value=total[7], inline=1)
         embed.add_field(name="死亡累計", value=total[8], inline=1)
         embed.add_field(name="-", value="-",inline=True)
-        embed.add_field(name="全球資訊", value=f"---------",inline=False)
+        embed.add_field(name="全球資訊", value=f"----------------------",inline=False)
         embed.add_field(name="全球總確診", value=total[9], inline=False)
         embed.add_field(name="全球總死亡", value=total[10], inline=False)
 

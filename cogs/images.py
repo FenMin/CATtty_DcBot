@@ -49,7 +49,7 @@ class images(commands.Cog):
             os.remove("./image/no-bg.png")
                     
         except:
-            await ctx.send("輸入錯誤 非***網址***或***圖片***")
+            await ctx.send("> `輸入錯誤 非`***`網址`***`或`***`圖片`***  **`或這張照片沒有明顯前後景特徵而無法判斷背景`**")
     
     @commands.command()
     async def image(self,mes):
