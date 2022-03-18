@@ -97,7 +97,7 @@ addcog_path('./cogs/webCrawler' , "cogs.webCrawler")
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity  = discord.Game(name = "用\"#\"來用我"))
+    await bot.change_presence(activity  = discord.Game(name = "用\"#\"來玩我"))
     print('ready')
 
 
