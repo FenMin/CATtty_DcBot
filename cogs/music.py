@@ -41,7 +41,30 @@ ffmpegopts = {
 
 ytdl = YoutubeDL(ytdlopts)
 
+def yt_search(url):
+    with YoutubeDL(ytdlopts) as ytdl:
+        try:
+            info = ytdl.extract_info(url , download=False)
+        except Exception:
+            return False
 
+    return info
+
+def time_template(t):
+    m, s = divmod(t, 60)
+    h, m = divmod(m, 60)
+
+    if h+m < 1:
+        time = f"{s:02d}秒"
+
+    elif h < 1:
+        time = f"{m:02d}:{s:02d}"
+
+    else:
+        time = f'{h:d}:{m:02d}:{s:02d}'
+    
+    return time
+    
 class YTDLSource(discord.PCMVolumeTransformer):
 
     def __init__(self, source, *, data, requester):
@@ -52,6 +75,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.web_url = data.get('webpage_url')
         self.duration = data.get('duration')
         self.channel_id = data.get('channel_id')
+        self.thumbnail = data.get('thumbnail')
+        self.uploader = data.get('uploader')
+        self.uploader_url = data.get('uploader_url')
 
         # YTDL info dicts (data) have other useful information you might want
         # https://github.com/rg3/youtube-dl/blob/master/README.md
@@ -73,7 +99,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             # take first item from a playlist
             data = data['entries'][0]
         ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
-        embed = discord.Embed(title="", description=f"**序列新增**:  \n [{data['title']}]({data['webpage_url']})", color=ram_color)
+        embed = discord.Embed(title="", description=f"**序列新增**:  \n\n [{data['title']}]({data['webpage_url']})", color=ram_color)
         await ctx.send(embed=embed)
 
         if download:
@@ -127,7 +153,7 @@ class MusicPlayer:
 
             try:
                 # Wait for the next song. If we timeout cancel the player and disconnect...
-                async with timeout(5):  # second / bot disconnected from channel when idle
+                async with timeout(600):  # second / bot disconnected from channel when idle
                     source = await self.queue.get()
             except asyncio.TimeoutError:
                 return self.destroy(self._guild)
@@ -165,34 +191,37 @@ class MusicPlayer:
                 t = f'{h:d}:{m:02d}:{s:02d}'
 
 
-            channel_url = f"http://www.youtube.com/channel/{source.channel_id}"
+            channel_url = source.uploader_url
+            
+
             soup = bs4(requests.get(channel_url, cookies={'CONSENT': 'YES+1'}).text, "html.parser")
             data = re.search(r'var ytInitialData = ({.*});', str(soup.prettify())).group(1)
             json_data = json.loads(data)
           
             avatar = json_data['header']['c4TabbedHeaderRenderer']['avatar']['thumbnails'][0]['url']
-            author = json_data['header']['c4TabbedHeaderRenderer']['title']
-
-            search = f"https://www.youtube.com/results?search_query={source.title}"
-            soup = bs4(requests.get(search, cookies={'CONSENT': 'YES+1'}).text, "html.parser")
-            data = re.search(r'var ytInitialData = ({.*});', str(soup.prettify())).group(1)
-            json_data = json.loads(data)
             
-            try:
-                thumbnails = json_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][1]['url']
-            except:
-                try:
-                    thumbnails = json_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][0]['url']
-                except:
-                    thumbnails = jdata['error']
+            #author = json_data['header']['c4TabbedHeaderRenderer']['title']
 
-            embed = discord.Embed(title="> **正在播放**", description=f"[**{source.title}**]({source.web_url})", color=ram_color)                        
-            embed.set_author(name=author, url=channel_url, icon_url=avatar)
-            embed.set_thumbnail(url = thumbnails)
+            #search = f"https://www.youtube.com/results?search_query={source.title}"
+            #soup_2 = bs4(requests.get(search, cookies={'CONSENT': 'YES+1'}).text, "html.parser")
+            #data_2 = re.search(r'var ytInitialData = ({.*});', str(soup_2.prettify())).group(1)
+            #thumb_data = json.loads(data_2)
+            
+            #try:
+            #    thumbnails = thumb_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][1]['url']
+            #except:
+            #    try:
+            #        thumbnails = thumb_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][0]['url']
+            #    except:
+            #        thumbnails = jdata['error_img']
+
+            embed = discord.Embed(title=f'**{source.title}**', url=source.web_url, description="若音樂不為預期播放的那首 可在下方重新選擇\n (可是我還沒做這功能 lol ", color=ram_color)                        
+            embed.set_author(name=source.uploader, url=source.uploader_url, icon_url=avatar)
+            embed.set_thumbnail(url = source.thumbnail)
             embed.add_field(name = "> **狀態**" , value = "```播放中```" , inline=True)
             embed.add_field(name = "> **長度**" , value = f"```{t}```", inline=True)
             
-            view = musicbtn(self._channel, embed, self._guild)
+            view = musicbtn(self._channel, embed)
             self.np = await self._channel.send(embed=embed , view = view)
             await self.next.wait()
 
@@ -207,12 +236,12 @@ class MusicPlayer:
 
 
 class musicbtn(View , MusicPlayer):
-    def __init__(self, ch , embed, guild):
+    def __init__(self, ch , embed):
         super().__init__(timeout=None)
         self.status = 0
         self.ch = ch
         self.embed = embed
-        self.guild = guild  #<class 'discord.guild.Guild'>
+        #self.guild = guild  #<class 'discord.guild.Guild'>
         
 
     @discord.ui.button(label = "暫停" , style = discord.ButtonStyle.danger , emoji="⏸️")
@@ -268,7 +297,7 @@ class musicbtn(View , MusicPlayer):
 
         embed = discord.Embed(title="音樂已取消" , color = discord.Color.red())
      
-        await interaction.response.edit_message(embed = embed)
+        await interaction.response.edit_message(embed = embed , view=None)
 
     @discord.ui.button(label = "跳過" , style = discord.ButtonStyle.primary, emoji = "⏭️")
     async def b3(self, button, interaction):
@@ -288,20 +317,71 @@ class musicbtn(View , MusicPlayer):
 
     @discord.ui.button(label = "歌曲列表" , style = discord.ButtonStyle.secondary, emoji = "📜")
     async def b4(self, button, interaction):
-        ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
-
-        embed = discord.Embed(title="歌曲列表", description="---------------------" , color=ram_color)
-        count = 1
+        
         if player.queue._queue:
-            for song in player.queue._queue:
-                embed.add_field(name = f"> **{count}.** **{song['title']}**" , value = f"\ncall by:__{song['requester'].name}__" , inline=False)
-                count+=1
             
-            await interaction.channel.send(embed = embed)
+            
+            ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+            embed = discord.Embed(title="歌曲列表 - 下方選單可刪除歌曲", description="---------------------" , color=ram_color)
+            count = 0
+            options = []
+
+            for song in player.queue._queue:                
+                embed.add_field(name = f"> **{count+1}. **{song['title']}"  , value = f"由:__{song['requester'].name}__新增 --- [`歌曲連結`]({song['webpage_url']})" , inline=False)
+                
+                url = song['webpage_url']
+                time = yt_search(url).get('duration')
+
+                time = time_template(time)
+
+                options.append(discord.SelectOption(label=song['title'] , description=time, value=count))
+
+                count+=1
+
+            select = listSelect(option=options , count=count)
+            v = View()
+            v.add_item(select)
+
+            await interaction.channel.send(embed = embed, view=v)
 
         else:
-            await interaction.channel.send(f"> **列表中已無歌曲**")
+            await interaction.channel.send(f"> **列表中無歌曲**")
         
+
+class listSelect(Select):
+    def __init__(self, option:list, count):
+        super().__init__(placeholder = f"共有{count}首歌" , options = option)
+
+    async def callback(self, interaction:discord.Interaction):
+        index = self.values[0] #index
+        del player.queue._queue[int(index)]
+
+        if player.queue._queue:
+            ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
+            embed = discord.Embed(title="歌曲列表 - 下方選單可刪除歌曲", description="---------------------" , color=ram_color)
+
+            counter = 0
+            options_2 = []
+            
+            for songs in player.queue._queue:
+                embed.add_field(name = f"> **{counter+1}. **{songs['title']}"  , value = f"由:__{songs['requester'].name}__新增 --- [`歌曲連結`]({songs['webpage_url']})" , inline=False)
+                
+                url = songs['webpage_url']
+                time = yt_search(url).get('duration')
+                time = time_template(time)
+                options_2.append(discord.SelectOption(label=songs['title'] , description=time, value=counter))
+
+                counter+=1
+
+            select = listSelect(option=options_2 , count=counter)
+            v = View()
+            v.add_item(select)
+
+            await interaction.response.edit_message(embed = embed, view=v)
+
+
+        else:
+            await interaction.response.edit_message(content = f"> **列表中無歌曲**", view=None, embed=None)
 
 class music(commands.Cog):
 
@@ -347,6 +427,7 @@ class music(commands.Cog):
         except:
 
             await ctx.reply(f"> **你未在任何語音頻道內**")
+        
 
     @commands.command()
     async def leave(self,ctx):
@@ -391,8 +472,6 @@ class music(commands.Cog):
         global player
         player = self.get_player(ctx)
         
-        # If download is False, source will be a dict which will be used later to regather the stream.
-        # If download is True, source will be a discord.FFmpegPCMAudio with a VolumeTransformer.
         source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop, download=False)
 
         await player.queue.put(source)
