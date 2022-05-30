@@ -38,7 +38,7 @@ ffmpegopts = {
     'before_options': '-nostdin',
     'options': '-vn'
 }
-
+        
 ytdl = YoutubeDL(ytdlopts)
 
 def yt_search(url):
@@ -55,7 +55,7 @@ def time_template(t):
     h, m = divmod(m, 60)
 
     if h+m < 1:
-        time = f"{s:02d}秒"
+        time = f"{s:02d}"
 
     elif h < 1:
         time = f"{m:02d}:{s:02d}"
@@ -152,7 +152,10 @@ class MusicPlayer:
             self.next.clear()
 
             try:
-                # Wait for the next song. If we timeout cancel the player and disconnect...
+               
+                # Wait for the next song. If we timeout cancel the player and disconnect...  #停止播放區  
+                print("停止播放")  #播放 --> 播放完畢(進入此區) --> 檢查source還有沒有音樂 --> 若有就繼續播放 --> 無就停止 
+                
                 async with timeout(600):  # second / bot disconnected from channel when idle
                     source = await self.queue.get()
             except asyncio.TimeoutError:
@@ -173,22 +176,14 @@ class MusicPlayer:
 
             try:
                 self._guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
+                print("開始撥放")
             except:
                 pass
 
             
             ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
-            m, s = divmod(source.duration, 60)
-            h, m = divmod(m, 60)
-
-            if h+m < 1:
-                t = f"{s:02d}秒"
-
-            elif h < 1:
-                t = f"{m:02d}:{s:02d}"
-
-            else:
-                t = f'{h:d}:{m:02d}:{s:02d}'
+            
+            t = time_template(source.duration)
 
 
             channel_url = source.uploader_url
@@ -200,26 +195,13 @@ class MusicPlayer:
           
             avatar = json_data['header']['c4TabbedHeaderRenderer']['avatar']['thumbnails'][0]['url']
             
-            #author = json_data['header']['c4TabbedHeaderRenderer']['title']
-
-            #search = f"https://www.youtube.com/results?search_query={source.title}"
-            #soup_2 = bs4(requests.get(search, cookies={'CONSENT': 'YES+1'}).text, "html.parser")
-            #data_2 = re.search(r'var ytInitialData = ({.*});', str(soup_2.prettify())).group(1)
-            #thumb_data = json.loads(data_2)
-            
-            #try:
-            #    thumbnails = thumb_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][1]['url']
-            #except:
-            #    try:
-            #        thumbnails = thumb_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['videoRenderer']['thumbnail']['thumbnails'][0]['url']
-            #    except:
-            #        thumbnails = jdata['error_img']
 
             embed = discord.Embed(title=f'**{source.title}**', url=source.web_url, description="若音樂不為預期播放的那首 可在下方重新選擇\n (可是我還沒做這功能 lol ", color=ram_color)                        
             embed.set_author(name=source.uploader, url=source.uploader_url, icon_url=avatar)
             embed.set_thumbnail(url = source.thumbnail)
-            embed.add_field(name = "> **狀態**" , value = "```播放中```" , inline=True)
-            embed.add_field(name = "> **長度**" , value = f"```{t}```", inline=True)
+            #embed.add_field(name = "> **狀態**" , value = "```播放中```" , inline=True)
+            embed.add_field(name = "> **音樂長度**" , value = f"```{t}```", inline=False)
+            embed.add_field(name="> **循環模式**" , value="```關閉中```" , inline=False)
             
             view = musicbtn(self._channel, embed)
             self.np = await self._channel.send(embed=embed , view = view)
@@ -238,15 +220,20 @@ class MusicPlayer:
 class musicbtn(View , MusicPlayer):
     def __init__(self, ch , embed):
         super().__init__(timeout=None)
-        self.status = 0
+        self.status = 0     
         self.ch = ch
         self.embed = embed
+        self.circle_status = 1   
+
         #self.guild = guild  #<class 'discord.guild.Guild'>
         
+    #async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    #    if interaction.user
 
     @discord.ui.button(label = "暫停" , style = discord.ButtonStyle.danger , emoji="⏸️")
-    async def b1(self , button, interaction):    
-        if not self.status:  #status == pause
+    async def b1(self , button, interaction):
+        text = ""    
+        if not self.status: #status = 0
             button.label = "繼續"
             button.style = discord.ButtonStyle.green
             button.emoji = "▶️"
@@ -255,10 +242,11 @@ class musicbtn(View , MusicPlayer):
             try:
                 await voice_client.pause()
             except:
-                self.embed.set_field_at(0, name="> **狀態**" , value = "```暫停中```")
-
+                text = "```暫停中```"
+                    
+            #self.embed.set_field_at(0, name="> **狀態**" , value = text)
             
-        else:
+        else: # status = 1
             button.label = "暫停"
             button.style = discord.ButtonStyle.danger
             button.emoji = "⏸️"
@@ -267,12 +255,13 @@ class musicbtn(View , MusicPlayer):
             try:
                 await voice_client.resume()
             except:
-                self.embed.set_field_at(0, name = "> **狀態**" , value = "```播放中```")
-                
+                text = "```播放中```"
 
-        await interaction.response.edit_message(view = self , embed = self.embed)
+            #self.embed.set_field_at(0, name = "> **狀態**" , value = text)
+
+        await interaction.response.edit_message(view = self)
     
-    @discord.ui.button(label = "取消" , style = discord.ButtonStyle.danger , emoji="🚫")
+    @discord.ui.button(label = "關閉" , style = discord.ButtonStyle.danger , emoji="🚫")
     async def b2(self, button, interaction):
         vc = interaction.guild.voice_client
         
@@ -327,14 +316,14 @@ class musicbtn(View , MusicPlayer):
             options = []
 
             for song in player.queue._queue:                
-                embed.add_field(name = f"> **{count+1}. **{song['title']}"  , value = f"由:__{song['requester'].name}__新增 --- [`歌曲連結`]({song['webpage_url']})" , inline=False)
+                embed.add_field(name = f"> **{count+1}- **{song['title']}"  , value = f"由:__{song['requester'].name}__新增 --- [`歌曲連結`]({song['webpage_url']})" , inline=False)
                 
                 url = song['webpage_url']
                 time = yt_search(url).get('duration')
 
                 time = time_template(time)
 
-                options.append(discord.SelectOption(label=song['title'] , description=time, value=count))
+                options.append(discord.SelectOption(label=f"{count+1}.{song['title']}" , description=time, value=count))
 
                 count+=1
 
@@ -345,8 +334,33 @@ class musicbtn(View , MusicPlayer):
             await interaction.channel.send(embed = embed, view=v)
 
         else:
-            await interaction.channel.send(f"> **列表中無歌曲**")
+            embed_none = discord.Embed(title="**列表無歌曲**", color=discord.Color.dark_purple())
+            await interaction.channel.send(embed=embed_none , view=None)
+
+    @discord.ui.button(label = "單曲循環" , style = discord.ButtonStyle.green, emoji = "🔁")
+    async def b5(self, button2, interaction):
         
+        vc = interaction.guild.voice_client
+        if self.circle_status: #circle = 0 (default)
+            button2.style = discord.ButtonStyle.secondary
+            self.embed.set_field_at(1, name="> **循環模式**" , value = "```開啟中```", inline=False)
+            
+
+            
+            self.circle_status = 0
+            
+        else:
+            button2.style = discord.ButtonStyle.green
+
+            self.embed.set_field_at(1, name="> **循環模式**" , value="```關閉中```", inline=False)
+
+
+
+            self.circle_status = 1
+            
+
+        await interaction.response.edit_message(view = self , embed = self.embed)
+
 
 class listSelect(Select):
     def __init__(self, option:list, count):
@@ -354,7 +368,12 @@ class listSelect(Select):
 
     async def callback(self, interaction:discord.Interaction):
         index = self.values[0] #index
-        del player.queue._queue[int(index)]
+        try:
+            del player.queue._queue[int(index)]
+        except:
+            embed_none = discord.Embed(title="**列表已刪除完畢**", color=discord.Color.red())
+            await interaction.response.edit_message(embed=embed_none , view=None)
+            return
 
         if player.queue._queue:
             ram_color = int(["0x"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])][0] , 16)
@@ -381,7 +400,9 @@ class listSelect(Select):
 
 
         else:
-            await interaction.response.edit_message(content = f"> **列表中無歌曲**", view=None, embed=None)
+            embed_no = discord.Embed(title="**列表已刪除完畢**", color=discord.Color.red())
+            await interaction.response.edit_message(embed=embed_no , view=None)
+            return
 
 class music(commands.Cog):
 

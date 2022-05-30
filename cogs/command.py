@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 import random
 from discord.ext.commands.core import guild_only
+from pytest import Class
 
 class CountdownButton(Button):
     def __init__(self):
@@ -37,25 +38,40 @@ class musicbtn(View):
             button.style = discord.ButtonStyle.green
             button.emoji = "▶️"
             self.status = 1
-            await mes.edit("1")
+
             
         else:
             button.label = "暫停"
             button.style = discord.ButtonStyle.danger
             button.emoji = "⏸️"
             self.status = 0
-            await mes.edit("2")
+
         await interaction.response.edit_message(view = self)
         
     def get_status(self):
         return self.status
+
+class testbtn(View):
+    def __init__(self):
+        super().__init__(timeout=None)    
+
+    @discord.ui.button(label = "測試" , style = discord.ButtonStyle.green)
+    async def call(self, button, interaction):
+        await interaction.response.send_message(interaction.channel, view = self)
+
 
 class command(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
     
-    
+
+    @commands.command(name="test")
+    @commands.is_owner()
+    async def test(self , ctx):
+        view = testbtn()
+        await ctx.send("T",view = view)
+
     @commands.command()
     async def ping(self, ctx): 
         await ctx.send(f'**{round(self.bot.latency*1000)}**ms')
@@ -93,15 +109,7 @@ class command(commands.Cog):
         else:
             await ctx.send("請輸入數字")
 
-    @commands.command(name="test")
-    @commands.is_owner()
-    async def test(self , ctx):
-        person = ctx.author.id
-        if person == 397291587308093450:
-            view = musicbtn()
-            status = view.status
-            global mes
-            mes = await ctx.reply(f'status = {status}' , view = view)
+    
 
     @commands.command(name="countdown")
     async def countdown(self,ctx):
@@ -121,7 +129,7 @@ class command(commands.Cog):
         embed.add_field(name="--------------" , value=f"{diff.days}天 {count_hours}小時 {count_minutes}分 {count_seconds}秒")
 
         bot_msg = await ctx.send( embed=embed, view=view)
-        
+
         
 
 
