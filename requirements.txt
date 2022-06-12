@@ -1,0 +1,9 @@
+discord.py
+selenium
+discord-ui
+beautifulsoup4
+requests
+shutil
+googletrans
+youtube_dl
+twitchAPI
